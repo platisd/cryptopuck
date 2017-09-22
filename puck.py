@@ -1,4 +1,4 @@
-import os, random, struct
+import os, struct
 from Crypto.Cipher import AES
 
 def encrypt_file(key, in_filename, out_filename=None, chunksize=64*1024):
@@ -25,7 +25,7 @@ def encrypt_file(key, in_filename, out_filename=None, chunksize=64*1024):
     if not out_filename:
         out_filename = in_filename + '.enc'
 
-    iv = ''.join(chr(random.randint(0, 0xFF)) for i in range(16))
+    iv = os.urandom(16)
     encryptor = AES.new(key, AES.MODE_CBC, iv)
     filesize = os.path.getsize(in_filename)
 
@@ -39,7 +39,7 @@ def encrypt_file(key, in_filename, out_filename=None, chunksize=64*1024):
                 if len(chunk) == 0:
                     break
                 elif len(chunk) % 16 != 0:
-                    chunk += ' ' * (16 - len(chunk) % 16)
+                    chunk += ' '.encode("UTF-8") * (16 - len(chunk) % 16)
 
                 outfile.write(encryptor.encrypt(chunk))
 
@@ -68,8 +68,18 @@ def decrypt_file(key, in_filename, out_filename=None, chunksize=24*1024):
 
             outfile.truncate(origsize)
 
+
 def main():
-    pass
+    secret_key = os.urandom(32)
+    plain_text_file = "clear/test.txt"
+    encrypted_filename = "encrypted/test.txt.enc"
+    decrypted_filename = "decrypted/test.txt.decrypted"
+
+    encrypt_file(secret_key, plain_text_file, encrypted_filename)
+    decrypt_file(secret_key, encrypted_filename, decrypted_filename)
+
+    with open("encrypted/key", "wb") as key_file:
+        key_file.write(secret_key)
 
 
 if __name__ == "__main__":
