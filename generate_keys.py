@@ -5,7 +5,7 @@ The public key should be deployed on the Cryptopuck and will be used to encrypt
 the AES secret which will have encrypted the files.
 """
 
-import argparse
+import os,argparse
 from Crypto.PublicKey import RSA
 
 
@@ -26,8 +26,10 @@ def main():
     private_key_file = args.destination + "key.private"
     with open(public_key_file, "wb") as public_file:
         public_file.write(public_key.exportKey())
+        print("Generated public key at: " + os.path.abspath(public_key_file))
     with open(private_key_file, "wb") as private_file:
         private_file.write(private_key.exportKey())
+        print("Generated private key at: " + os.path.abspath(private_key_file))
 
 if __name__ == "__main__":
     main()
