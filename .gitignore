@@ -2,3 +2,4 @@ out/
 clear/
 encrypted/
 decrypted/
+key.*
