@@ -1,5 +1,7 @@
 import os, struct
 from Crypto.Cipher import AES
+from Crypto.PublicKey import RSA
+from Crypto.Cipher import PKCS1_OAEP
 
 def encrypt_file(key, in_filename, out_filename=None, chunksize=64*1024):
     """ Encrypts a file using AES (CBC mode) with the
@@ -43,43 +45,38 @@ def encrypt_file(key, in_filename, out_filename=None, chunksize=64*1024):
 
                 outfile.write(encryptor.encrypt(chunk))
 
-def decrypt_file(key, in_filename, out_filename=None, chunksize=24*1024):
-    """ Decrypts a file using AES (CBC mode) with the
-        given key. Parameters are similar to encrypt_file,
-        with one difference: out_filename, if not supplied
-        will be in_filename without its last extension
-        (i.e. if in_filename is 'aaa.zip.enc' then
-        out_filename will be 'aaa.zip')
+
+def encrypt_aes_secret(aes_secret, public_key_file):
+    """ Encrypt the AES secret using our public key.
+
+        Arguments:
+            aes_secret          The AES secret in plain text to encrypt
+            public_key_file     The public key to be used for encryption
+
+        Return:
+            encrypted_aes_secret   The encrypted AES key using the public key
     """
-    if not out_filename:
-        out_filename = os.path.splitext(in_filename)[0]
 
-    with open(in_filename, 'rb') as infile:
-        origsize = struct.unpack('<Q', infile.read(struct.calcsize('Q')))[0]
-        iv = infile.read(16)
-        decryptor = AES.new(key, AES.MODE_CBC, iv)
+    with open(public_key_file, 'r') as pub_file:
+        pub_key = RSA.importKey(pub_file.read())
 
-        with open(out_filename, 'wb') as outfile:
-            while True:
-                chunk = infile.read(chunksize)
-                if len(chunk) == 0:
-                    break
-                outfile.write(decryptor.decrypt(chunk))
-
-            outfile.truncate(origsize)
+    cipher = PKCS1_OAEP.new(pub_key)
+    encrypted_aes_secret = cipher.encrypt(aes_secret)
+    return encrypted_aes_secret
 
 
 def main():
-    secret_key = os.urandom(32)
+    aes_secret = os.urandom(32)
     plain_text_file = "clear/test.txt"
-    encrypted_filename = "encrypted/test.txt.enc"
-    decrypted_filename = "decrypted/test.txt.decrypted"
+    encrypted_file = "encrypted/test.txt.enc"
+    decrypted_file = "decrypted/test.txt.decrypted"
+    public_key_file = "key.public"
+    encrypt_file(aes_secret, plain_text_file, encrypted_file)
 
-    encrypt_file(secret_key, plain_text_file, encrypted_filename)
-    decrypt_file(secret_key, encrypted_filename, decrypted_filename)
-
-    with open("encrypted/key", "wb") as key_file:
-        key_file.write(secret_key)
+    # Encrypt and save our AES secret using the public key for the holder of
+    # the private key to be able to decrypt the files.
+    with open("encrypted/aes_secret", "wb") as key_file:
+        key_file.write(encrypt_aes_secret(aes_secret, public_key_file))
 
 
 if __name__ == "__main__":
