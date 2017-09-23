@@ -7,13 +7,16 @@ from Crypto.Cipher import PKCS1_OAEP
 def decrypt_file(key, in_filename, out_dir="", chunksize=24*1024):
     """ Decrypts a file using AES (CBC mode) with the given key.
 
+        Adopted from Eli Bendersky's example:
+        http://eli.thegreenplace.net/2010/06/25/aes-encryption-of-files-in-python-with-pycrypto/
+
     Arguments:
-        key             AES secret to decrypt the file
-        in_filename     Path to the decrypted file
+        key             AES secret to decrypt the file.
+        in_filename     Path to the decrypted file.
         out_dir         Path to the output folder of the decrypted file.
                         The decrypted file name will be the original one minus
-                        the last ending (e.g. example.txt.enc -> example.txt)
-        chunksize       Size of the chunks to read while decrypting
+                        the last ending (e.g. example.txt.enc -> example.txt).
+        chunksize       Size of the chunks to read while decrypting.
     """
 
     out_filename = os.path.basename(os.path.splitext(in_filename)[0])
@@ -59,14 +62,16 @@ def main():
     parser = argparse.ArgumentParser(description=parser_description)
     parser.add_argument("--source",
                         help="Path to the directory with the encrypted files",
-                        default="./")
-    parser.add_argument("--destination",
-                        help="Path to the directory where the unencrypted files will be exported",
                         required=True)
-    parser.add_argument("--secret",
-                        help="Path to the (encrypted) AES secret file")
-    parser.add_argument("--private-key",
-                        help="Path to the private key", required=True)
+    destination_message = "Path to the directory where the unencrypted files \
+will be exported"
+    parser.add_argument("--destination", help=destination_message,
+                        required=True)
+    secret_help_message = "Path to the (encrypted) AES secret file. If none \
+provided, a file named `aes_secret` from the source folder will be used."
+    parser.add_argument("--secret", help=secret_help_message)
+    parser.add_argument("--private-key", help="Path to the private key",
+                        default="./key.private")
     args = parser.parse_args()
 
     # Decrypt the AES secret
