@@ -4,7 +4,7 @@ from Crypto.PublicKey import RSA
 from Crypto.Cipher import PKCS1_OAEP
 
 
-def decrypt_file(key, in_filename, out_dir="", chunksize=24*1024):
+def decrypt_file(key, in_filename, out_dir="", out_filename=None, chunksize=24*1024):
     """ Decrypts a file using AES (CBC mode) with the given key.
 
         Adopted from Eli Bendersky's example:
@@ -14,12 +14,13 @@ def decrypt_file(key, in_filename, out_dir="", chunksize=24*1024):
         key             AES secret to decrypt the file.
         in_filename     Path to the decrypted file.
         out_dir         Path to the output folder of the decrypted file.
-                        The decrypted file name will be the original one minus
+        out_filename    The name of the decrypted file. If no name is supplied
+                        the decrypted file name will be the original one minus
                         the last ending (e.g. example.txt.enc -> example.txt).
         chunksize       Size of the chunks to read while decrypting.
     """
-
-    out_filename = os.path.basename(os.path.splitext(in_filename)[0])
+    if not out_filename:
+        out_filename = os.path.basename(os.path.splitext(in_filename)[0])
 
     with open(in_filename, 'rb') as infile:
         origsize = struct.unpack('<Q', infile.read(struct.calcsize('Q')))[0]

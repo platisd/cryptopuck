@@ -3,7 +3,7 @@ from Crypto.Cipher import AES
 from Crypto.PublicKey import RSA
 from Crypto.Cipher import PKCS1_OAEP
 
-def encrypt_file(key, in_filename, out_dir="", chunksize=64*1024):
+def encrypt_file(key, in_filename, out_dir="", out_filename=None, chunksize=64*1024):
     """ Encrypts a file using AES (CBC mode) with the
         given key.
 
@@ -16,14 +16,17 @@ def encrypt_file(key, in_filename, out_dir="", chunksize=64*1024):
                             are more secure.
             in_filename     Path to the file to be encrypted.
             out_dir         Path to the folder where the encrypted file will be
-                            generated. The encrypted file name will be the
-                            original plus the `.enc` suffix.
+                            generated.
+            out_filename    The name for the encrypted file to be generated.
+                            If no filename is supplied, the encrypted file name
+                            will be the original plus the `.enc` suffix.
             chunksize       Sets the size of the chunk which the function
                             uses to read and encrypt the file. Larger chunk
                             sizes can be faster for some files and machines.
                             chunksize must be divisible by 16.
     """
-    out_filename = os.path.basename(in_filename) + '.enc'
+    if not out_filename:
+        out_filename = os.path.basename(in_filename) + '.enc'
 
     iv = os.urandom(16)
     encryptor = AES.new(key, AES.MODE_CBC, iv)
