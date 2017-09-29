@@ -94,6 +94,11 @@ and the original files will be removed."
         for name in filenames:
             filename = os.path.join(dirpath, name)
             encrypt_file(aes_secret, filename, args.destination)
+            # If we are encrypting in the same folder as the clear text files
+            # then remove the original unencrypted files
+            if args.source == args.destination:
+                if os.path.exists(filename):
+                    os.remove(filename)
 
     # Encrypt and save our AES secret using the public key for the holder of
     # the private key to be able to decrypt the files.
