@@ -43,24 +43,23 @@ def encrypt_file(key, in_filename, out_dir="", chunksize=64*1024):
 
                 outfile.write(encryptor.encrypt(chunk))
 
-
-def encrypt_aes_secret(aes_secret, public_key_file):
-    """ Encrypt the AES secret using our public key.
+def encrypt_string(text_to_encrypt, public_key_file):
+    """ Encrypt the supplied string using our public key.
 
         Arguments:
-            aes_secret          The AES secret in plain text to encrypt
+            text_to_encrypt     The plain text to encrypt
             public_key_file     The public key to be used for encryption
 
         Return:
-            encrypted_aes_secret   The encrypted AES key using the public key
+            encrypted_text     The encrypted text using the public key
     """
 
     with open(public_key_file, 'r') as pub_file:
         pub_key = RSA.importKey(pub_file.read())
 
     cipher = PKCS1_OAEP.new(pub_key)
-    encrypted_aes_secret = cipher.encrypt(aes_secret)
-    return encrypted_aes_secret
+    encrypted_text = cipher.encrypt(text_to_encrypt)
+    return encrypted_text
 
 
 def main():
@@ -86,7 +85,7 @@ and the original files will be removed."
     if not args.destination:
         args.destination = args.source
 
-    # Generate a random AES secret that will encrypt the files
+    # Generate a random secret that will encrypt the files as AES-256
     aes_secret = os.urandom(32)
 
     # Recursively encrypt all files in the source folder
@@ -103,7 +102,7 @@ and the original files will be removed."
     # Encrypt and save our AES secret using the public key for the holder of
     # the private key to be able to decrypt the files.
     with open(args.destination + "aes_secret", "wb") as key_file:
-        key_file.write(encrypt_aes_secret(aes_secret, args.public_key))
+        key_file.write(encrypt_string(aes_secret, args.public_key))
 
 
 if __name__ == "__main__":
