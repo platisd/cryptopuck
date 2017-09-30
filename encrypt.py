@@ -113,8 +113,8 @@ def main():
 
     # Save and encrypt the mapping between real and obscured filepaths
     json_map_name = "filenames_map"
-    with tempfile.NamedTemporaryFile() as tmp_json:
-        tmp_json.write(json.dumps(filenames_map).encode("UTF-8"))
+    with tempfile.NamedTemporaryFile(mode="r+t") as tmp_json:
+        tmp_json.write(json.dumps(filenames_map))
         tmp_json.seek(0)  # Set the position to the beginning so we can read
         # Encrypt the cleartext json file
         encrypt_file(aes_secret, tmp_json.name, args.destination + json_map_name)

@@ -1,4 +1,4 @@
-import sys, os, struct, argparse
+import sys, os, struct, argparse, json, tempfile
 from Crypto.Cipher import AES
 from Crypto.PublicKey import RSA
 from Crypto.Cipher import PKCS1_OAEP
@@ -70,6 +70,8 @@ def main():
     parser.add_argument("--secret", help=secret_help_message)
     parser.add_argument("--private-key", help="Path to the private key",
                         default="./key.private")
+    parser.add_argument("--restore-structure", help="Restore the original\
+    file structure, i.e. file paths and file names.", action="store_true")
     args = parser.parse_args()
 
     # Decrypt the AES secret
@@ -89,12 +91,41 @@ def main():
         secret = aes_secret_file.read()
     decrypted_aes_secret = decrypt_string(secret, args.private_key)
 
-    # Recursively unencrypt all files in the source folder except the secret
+    # If we should restore the file structure, then we should parse the file
+    # containing the encrypted structure and create the appropriate filepaths.
+    # To do that we need to restore the mapping that contains the
+    # real to obscured paths combinations. The keys are the obscured filenames
+    # and the values are the real paths.
+    filenames_map = None
+    json_map_name = "filenames_map"
+    json_encrypted_map = args.source + json_map_name
+    if args.restore_structure:
+        if not os.path.isfile(json_encrypted_map):
+            print("Unable to restore structure. Map file not found: " +
+                  json_encrypted_map)
+            sys.exit(1)
+        # Unencrypt the json containing the filenames map into a temporary file
+        with tempfile.NamedTemporaryFile(mode="r+t") as tmp_json:
+            decrypt_file(decrypted_aes_secret, json_encrypted_map, tmp_json.name)
+            tmp_json.seek(0)  # Go to the beginning of the file to read again
+            filenames_map = json.load(tmp_json)
+
+    # Recursively unencrypt files in the source folder
     for dirpath, dirnames, filenames in os.walk(args.source):
         for name in filenames:
             filename = os.path.join(dirpath, name)
-            if filename != args.secret:
-                decrypt_file(decrypted_aes_secret, filename, args.destination + name)
+            # Do not unencrypt files that we have generated ourselves
+            if filename != args.secret and filename != json_encrypted_map:
+                # If the filenames mapping is defined, then we should use it
+                # to restore the original file structure
+                destination_file = args.destination + name
+                if filenames_map:
+                    # Get the real filename and its path
+                    destination_file = args.destination + filenames_map[name]
+                    # Create the necessary folder structure
+                    folder_structure = os.path.dirname(destination_file)
+                    os.makedirs(folder_structure, exist_ok=True)
+                decrypt_file(decrypted_aes_secret, filename, destination_file)
 
 if __name__ == "__main__":
     main()
