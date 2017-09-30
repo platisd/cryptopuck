@@ -71,9 +71,10 @@ def main():
                         help="Path to the directory with the files to encrypt",
                         required=True)
     destination_message = "Path to the directory where the encrypted files \
-    will be exported. If none provided, the same as the source will be selected \
-    and the original files will be removed."
-    parser.add_argument("--destination", help=destination_message)
+    will be exported. If it is the same as the source folder, then the \
+    existing unencrypted files will be removed."
+    parser.add_argument("--destination", help=destination_message,
+                        required=True)
     parser.add_argument("--public-key",
                         help="Path to the public key", default="./key.public")
     args = parser.parse_args()
@@ -88,10 +89,6 @@ def main():
     if not os.path.isfile(args.public_key):
         print ("Public key not found: " + args.public_key)
         sys.exit(1)
-
-    # If no destination was provided, then the destination is the source
-    if not args.destination:
-        args.destination = args.source
 
     # Generate a random secret that will encrypt the files as AES-256
     aes_secret = os.urandom(32)
