@@ -132,7 +132,7 @@ def main():
 
     # Encrypt and save our AES secret using the public key for the holder of
     # the private key to be able to decrypt the files.
-    with open(args.destination + "aes_secret", "wb") as key_file:
+    with open(args.destination + "secret", "wb") as key_file:
         key_file.write(encrypt_string(aes_secret, args.public_key))
 
 

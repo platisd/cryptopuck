@@ -67,7 +67,7 @@ def main():
     parser.add_argument("--destination", help=destination_message,
                         required=True)
     secret_help_message = "Path to the (encrypted) AES secret file. If none \
-    provided, a file named `aes_secret` from the source folder will be used."
+    provided, a file named `secret` from the source folder will be used."
     parser.add_argument("--secret", help=secret_help_message)
     parser.add_argument("--private-key", help="Path to the private key",
                         default="./key.private")
@@ -84,10 +84,10 @@ def main():
     # Decrypt the AES secret
     # Set default path if None provided
     if not args.secret:
-        args.secret = args.source + "aes_secret"
+        args.secret = args.source + "secret"
     # Check to see if there is actually an AES secret file
     if not os.path.isfile(args.secret):
-        print ("AES secret not found: " + args.secret)
+        print ("Secret not found: " + args.secret)
         sys.exit(1)
     # Check to see if there is actually a private key file
     if not os.path.isfile(args.private_key):
