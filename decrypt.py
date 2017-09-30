@@ -4,7 +4,7 @@ from Crypto.PublicKey import RSA
 from Crypto.Cipher import PKCS1_OAEP
 
 
-def decrypt_file(key, in_filename, out_dir="", out_filename=None, chunksize=24*1024):
+def decrypt_file(key, in_filename, out_filename=None, chunksize=24*1024):
     """ Decrypts a file using AES (CBC mode) with the given key.
 
         Adopted from Eli Bendersky's example:
@@ -13,10 +13,10 @@ def decrypt_file(key, in_filename, out_dir="", out_filename=None, chunksize=24*1
     Arguments:
         key             AES secret to decrypt the file.
         in_filename     Path to the decrypted file.
-        out_dir         Path to the output folder of the decrypted file.
-        out_filename    The name of the decrypted file. If no name is supplied
-                        the decrypted file name will be the original one minus
-                        the last ending (e.g. example.txt.enc -> example.txt).
+        out_filename    The name (and path) of the decrypted file. If no name
+                        is supplied the decrypted file name will be the
+                        original one minus the last ending
+                        (e.g. example.txt.enc -> example.txt).
         chunksize       Size of the chunks to read while decrypting.
     """
     if not out_filename:
@@ -27,7 +27,7 @@ def decrypt_file(key, in_filename, out_dir="", out_filename=None, chunksize=24*1
         iv = infile.read(16)
         decryptor = AES.new(key, AES.MODE_CBC, iv)
 
-        with open(out_dir + out_filename, 'wb') as outfile:
+        with open(out_filename, 'wb') as outfile:
             while True:
                 chunk = infile.read(chunksize)
                 if len(chunk) == 0:
@@ -94,7 +94,7 @@ def main():
         for name in filenames:
             filename = os.path.join(dirpath, name)
             if filename != args.secret:
-                decrypt_file(decrypted_aes_secret, filename, args.destination)
+                decrypt_file(decrypted_aes_secret, filename, args.destination + name)
 
 if __name__ == "__main__":
     main()

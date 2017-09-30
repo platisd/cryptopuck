@@ -3,7 +3,7 @@ from Crypto.Cipher import AES
 from Crypto.PublicKey import RSA
 from Crypto.Cipher import PKCS1_OAEP
 
-def encrypt_file(key, in_filename, out_dir="", out_filename=None, chunksize=64*1024):
+def encrypt_file(key, in_filename, out_filename=None, chunksize=64*1024):
     """ Encrypts a file using AES (CBC mode) with the
         given key.
 
@@ -15,9 +15,8 @@ def encrypt_file(key, in_filename, out_dir="", out_filename=None, chunksize=64*1
                             either 16, 24 or 32 bytes long. Longer keys
                             are more secure.
             in_filename     Path to the file to be encrypted.
-            out_dir         Path to the folder where the encrypted file will be
+            out_filename    The name (and path) for the encrypted file to be
                             generated.
-            out_filename    The name for the encrypted file to be generated.
                             If no filename is supplied, the encrypted file name
                             will be the original plus the `.enc` suffix.
             chunksize       Sets the size of the chunk which the function
@@ -33,7 +32,7 @@ def encrypt_file(key, in_filename, out_dir="", out_filename=None, chunksize=64*1
     filesize = os.path.getsize(in_filename)
 
     with open(in_filename, 'rb') as infile:
-        with open(out_dir + out_filename, 'wb') as outfile:
+        with open(out_filename, 'wb') as outfile:
             outfile.write(struct.pack('<Q', filesize))
             outfile.write(iv)
 
@@ -105,7 +104,7 @@ def main():
             # Save it to the filenames map along with the original filepath
             filenames_map[unique_name] = real_filepath
             # Encrypt the clear text file and give it an obscured name
-            encrypt_file(aes_secret, filename, args.destination, unique_name)
+            encrypt_file(aes_secret, filename, args.destination + unique_name)
             # If we are encrypting in the same folder as the clear text files
             # then remove the original unencrypted files
             if args.source == args.destination:
@@ -118,7 +117,7 @@ def main():
         tmp_json.write(json.dumps(filenames_map).encode("UTF-8"))
         tmp_json.seek(0)  # Set the position to the beginning so we can read
         # Encrypt the cleartext json file
-        encrypt_file(aes_secret, tmp_json.name, args.destination, json_map_name)
+        encrypt_file(aes_secret, tmp_json.name, args.destination + json_map_name)
 
     # Encrypt and save our AES secret using the public key for the holder of
     # the private key to be able to decrypt the files.
