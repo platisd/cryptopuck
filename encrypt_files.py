@@ -1,4 +1,4 @@
-import sys, os, struct, argparse
+import sys, os, struct, argparse, hashlib, json
 from Crypto.Cipher import AES
 from Crypto.PublicKey import RSA
 from Crypto.Cipher import PKCS1_OAEP
@@ -91,17 +91,38 @@ and the original files will be removed."
     # Generate a random secret that will encrypt the files as AES-256
     aes_secret = os.urandom(32)
 
-    # Recursively encrypt all files in the source folder
+    # Recursively encrypt all files and filenames in source folder
+    filenames_map = dict()  # Will contain the real - obscured paths combos
     for dirpath, dirnames, filenames in os.walk(args.source):
         for name in filenames:
             filename = os.path.join(dirpath, name)
-            encrypt_file(aes_secret, filename, args.destination)
+            # Save the real filepath
+            real_filepath = filename.replace(args.source, "")
+            # Generate a salted file path
+            salted_path = (str(os.urandom(16)) + real_filepath).encode("UTF-8")
+            # Create a unique obscured filepath by hashing the salted filpath
+            unique_name = hashlib.sha512(salted_path).hexdigest()
+            # Save it to the filenames map along with the original filepath
+            filenames_map[unique_name] = real_filepath
+            # Encrypt the clear text file and give it an obscured name
+            encrypt_file(aes_secret, filename, args.destination, unique_name)
             # If we are encrypting in the same folder as the clear text files
             # then remove the original unencrypted files
             if args.source == args.destination:
                 if os.path.exists(filename):
                     os.remove(filename)
 
+    # Save and encrypt the mapping between real and obscured filepaths
+    json_map_name = "filenames_map"
+    json_tmp_path = "/tmp/" + json_map_name
+    # Save the mapping as a temporary cleartext json file
+    with open(json_tmp_path, "w") as cleartext_json:
+        json.dump(filenames_map, cleartext_json)
+    # Encrypt the cleartext json file
+    encrypt_file(aes_secret, json_tmp_path, args.destination, json_map_name)
+    # Remove the temporary cleartext file
+    if os.path.exists(json_tmp_path):
+        os.remove(json_tmp_path)
     # Encrypt and save our AES secret using the public key for the holder of
     # the private key to be able to decrypt the files.
     with open(args.destination + "aes_secret", "wb") as key_file:
