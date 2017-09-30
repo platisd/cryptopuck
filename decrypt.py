@@ -132,6 +132,11 @@ def main():
                     folder_structure = os.path.dirname(destination_file)
                     os.makedirs(folder_structure, exist_ok=True)
                 decrypt_file(decrypted_aes_secret, filename, destination_file)
+            # If we are decrypting in the same folder as the encrypted files
+            # then remove the original encrypted files
+            if args.source == args.destination:
+                if os.path.exists(filename):
+                    os.remove(filename)
 
 if __name__ == "__main__":
     main()
