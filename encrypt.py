@@ -78,6 +78,12 @@ def main():
                         help="Path to the public key", default="./key.public")
     args = parser.parse_args()
 
+    # Make sure that the source and destination folders finish with separator
+    if args.source[-1] != os.sep:
+        args.source += os.sep
+    if args.destination[-1] != os.sep:
+        args.destination += os.sep
+
     # Check to see if there is actually a public key file
     if not os.path.isfile(args.public_key):
         print ("Public key not found: " + args.public_key)

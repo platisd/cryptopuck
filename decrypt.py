@@ -74,6 +74,12 @@ def main():
     file structure, i.e. file paths and file names.", action="store_true")
     args = parser.parse_args()
 
+    # Make sure that the source and destination folders finish with separator
+    if args.source[-1] != os.sep:
+        args.source += os.sep
+    if args.destination[-1] != os.sep:
+        args.destination += os.sep
+
     # Decrypt the AES secret
     # Set default path if None provided
     if not args.secret:
