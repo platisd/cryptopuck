@@ -62,11 +62,11 @@ def main():
                         help="Path to the directory with the encrypted files",
                         required=True)
     destination_message = "Path to the directory where the unencrypted files \
-will be exported"
+    will be exported"
     parser.add_argument("--destination", help=destination_message,
                         required=True)
     secret_help_message = "Path to the (encrypted) AES secret file. If none \
-provided, a file named `aes_secret` from the source folder will be used."
+    provided, a file named `aes_secret` from the source folder will be used."
     parser.add_argument("--secret", help=secret_help_message)
     parser.add_argument("--private-key", help="Path to the private key",
                         default="./key.private")

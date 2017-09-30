@@ -72,8 +72,8 @@ def main():
                         help="Path to the directory with the files to encrypt",
                         required=True)
     destination_message = "Path to the directory where the encrypted files \
-will be exported. If none provided, the same as the source will be selected \
-and the original files will be removed."
+    will be exported. If none provided, the same as the source will be selected \
+    and the original files will be removed."
     parser.add_argument("--destination", help=destination_message)
     parser.add_argument("--public-key",
                         help="Path to the public key", default="./key.public")
