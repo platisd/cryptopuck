@@ -1,4 +1,4 @@
-import sys, os, struct, argparse, hashlib, json
+import sys, os, struct, argparse, hashlib, json, tempfile
 from Crypto.Cipher import AES
 from Crypto.PublicKey import RSA
 from Crypto.Cipher import PKCS1_OAEP
@@ -114,15 +114,12 @@ def main():
 
     # Save and encrypt the mapping between real and obscured filepaths
     json_map_name = "filenames_map"
-    json_tmp_path = "/tmp/" + json_map_name
-    # Save the mapping as a temporary cleartext json file
-    with open(json_tmp_path, "w") as cleartext_json:
-        json.dump(filenames_map, cleartext_json)
-    # Encrypt the cleartext json file
-    encrypt_file(aes_secret, json_tmp_path, args.destination, json_map_name)
-    # Remove the temporary cleartext file
-    if os.path.exists(json_tmp_path):
-        os.remove(json_tmp_path)
+    with tempfile.NamedTemporaryFile() as tmp_json:
+        tmp_json.write(json.dumps(filenames_map).encode("UTF-8"))
+        tmp_json.seek(0)  # Set the position to the beginning so we can read
+        # Encrypt the cleartext json file
+        encrypt_file(aes_secret, tmp_json.name, args.destination, json_map_name)
+
     # Encrypt and save our AES secret using the public key for the holder of
     # the private key to be able to decrypt the files.
     with open(args.destination + "aes_secret", "wb") as key_file:
