@@ -37,25 +37,22 @@ def decrypt_file(key, in_filename, out_dir="", out_filename=None, chunksize=24*1
             outfile.truncate(origsize)
 
 
-def decrypt_aes_secret(aes_secret, private_key_file):
-    """ Decrypt the AES key so we can use it to decrypt the other files
+def decrypt_string(text_to_decrypt, private_key_file):
+    """ Decrypt the supplied string using our private key.
 
     Arguments:
-        aes_secret              The encrypted AES secret
-        private_key_file        The private key to decrypt the AES secret
+        text_to_decrypt         The encrypted text
+        private_key_file        The private key to decrypt
 
     Return:
-        decrypted_aes_secret    The decrypted AES secret
+        decrypted_text          The decrypted text
     """
     with open(private_key_file, "r") as pvt_file:
         pvt_key = RSA.importKey(pvt_file.read())
 
-    with open(aes_secret, "rb") as aes_secret_file:
-        secret = aes_secret_file.read()
-
     cipher = PKCS1_OAEP.new(pvt_key)
-    decrypted_aes_secret = cipher.decrypt(secret)
-    return decrypted_aes_secret
+    decrypted_text = cipher.decrypt(text_to_decrypt)
+    return decrypted_text
 
 
 def main():
@@ -88,7 +85,9 @@ provided, a file named `aes_secret` from the source folder will be used."
         print ("Private key not found: " + args.private_key)
         sys.exit(1)
     # Get the decrypted AES key
-    decrypted_aes_secret = decrypt_aes_secret(args.secret, args.private_key)
+    with open(args.secret, "rb") as aes_secret_file:
+        secret = aes_secret_file.read()
+    decrypted_aes_secret = decrypt_string(secret, args.private_key)
 
     # Recursively unencrypt all files in the source folder except the secret
     for dirpath, dirnames, filenames in os.walk(args.source):
