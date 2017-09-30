@@ -1,4 +1,4 @@
-import sys, os, struct, argparse, hashlib, json, tempfile
+import sys, os, struct, argparse, hashlib, json, tempfile, shutil
 from Crypto.Cipher import AES
 from Crypto.PublicKey import RSA
 from Crypto.Cipher import PKCS1_OAEP
@@ -116,6 +116,14 @@ def main():
             if args.source == args.destination:
                 if os.path.exists(filename):
                     os.remove(filename)
+
+    # If the source folder is the same as the destination, we should have some
+    # leftover empty subdirectories. Let's remove those too.
+    if args.source == args.destination:
+        for content in os.listdir(args.source):
+            content_path = os.path.join(args.source, content)
+            if os.path.isdir(content_path):
+                shutil.rmtree(content_path)
 
     # Save and encrypt the mapping between real and obscured filepaths
     json_map_name = "filenames_map"
