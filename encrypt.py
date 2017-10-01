@@ -100,6 +100,7 @@ def run(source, destination, public_key="./key.public"):
             # Save it to the filenames map along with the original filepath
             filenames_map[unique_name] = real_filepath
             # Encrypt the clear text file and give it an obscured name
+            print("Encrypting: " + filename)
             encrypt_file(aes_secret, filename, destination + unique_name)
             # If we are encrypting in the same folder as the clear text files
             # then remove the original unencrypted files

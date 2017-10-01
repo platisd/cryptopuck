@@ -118,6 +118,7 @@ def run(source, destination, secret, private_key="./key.private"):
                 # Create the necessary folder structure
                 folder_structure = os.path.dirname(destination_file)
                 os.makedirs(folder_structure, exist_ok=True)
+                print("Decrypting: " + filename)
                 decrypt_file(decrypted_aes_secret, filename, destination_file)
             # If we are decrypting in the same folder as the encrypted files
             # then remove the original encrypted files
