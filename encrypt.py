@@ -53,7 +53,7 @@ def encrypt_string(text_to_encrypt, public_key_file):
             public_key_file     The public key to be used for encryption
 
         Return:
-            encrypted_text     The encrypted text using the public key
+            encrypted_text      The encrypted text using the public key
     """
 
     with open(public_key_file, 'r') as pub_file:
@@ -62,6 +62,71 @@ def encrypt_string(text_to_encrypt, public_key_file):
     cipher = PKCS1_OAEP.new(pub_key)
     encrypted_text = cipher.encrypt(text_to_encrypt)
     return encrypted_text
+
+
+def run(source, destination, public_key="./key.public"):
+    """ Encrypts the source folder and outputs to the destination folder.
+
+        Arguments:
+            source          The folder to be encrypted
+            destination     The folder where the encrypted files will end up
+            public_key      The public key to be used for the encryption
+    """
+    # Make sure that the source and destination folders finish with separator
+    if source[-1] != os.sep:
+        source += os.sep
+    if destination[-1] != os.sep:
+        destination += os.sep
+
+    # Check to see if there is actually a public key file
+    if not os.path.isfile(public_key):
+        print ("Public key not found: " + public_key)
+        sys.exit(1)
+
+    # Generate a random secret that will encrypt the files as AES-256
+    aes_secret = os.urandom(32)
+
+    # Recursively encrypt all files and filenames in source folder
+    filenames_map = dict()  # Will contain the real - obscured paths combos
+    for dirpath, dirnames, filenames in os.walk(source):
+        for name in filenames:
+            filename = os.path.join(dirpath, name)
+            # Save the real filepath
+            real_filepath = filename.replace(source, "")
+            # Generate a salted file path
+            salted_path = (str(os.urandom(16)) + real_filepath).encode("UTF-8")
+            # Create a unique obscured filepath by hashing the salted filpath
+            unique_name = hashlib.sha512(salted_path).hexdigest()
+            # Save it to the filenames map along with the original filepath
+            filenames_map[unique_name] = real_filepath
+            # Encrypt the clear text file and give it an obscured name
+            encrypt_file(aes_secret, filename, destination + unique_name)
+            # If we are encrypting in the same folder as the clear text files
+            # then remove the original unencrypted files
+            if source == destination:
+                if os.path.exists(filename):
+                    os.remove(filename)
+
+    # If the source folder is the same as the destination, we should have some
+    # leftover empty subdirectories. Let's remove those too.
+    if source == destination:
+        for content in os.listdir(source):
+            content_path = os.path.join(source, content)
+            if os.path.isdir(content_path):
+                shutil.rmtree(content_path)
+
+    # Save and encrypt the mapping between real and obscured filepaths
+    json_map_name = "filenames_map"
+    with tempfile.NamedTemporaryFile(mode="r+t") as tmp_json:
+        tmp_json.write(json.dumps(filenames_map))
+        tmp_json.seek(0)  # Set the position to the beginning so we can read
+        # Encrypt the cleartext json file
+        encrypt_file(aes_secret, tmp_json.name, destination + json_map_name)
+
+    # Encrypt and save our AES secret using the public key for the holder of
+    # the private key to be able to decrypt the files.
+    with open(destination + "secret", "wb") as key_file:
+        key_file.write(encrypt_string(aes_secret, public_key))
 
 
 def main():
@@ -79,61 +144,7 @@ def main():
                         help="Path to the public key", default="./key.public")
     args = parser.parse_args()
 
-    # Make sure that the source and destination folders finish with separator
-    if args.source[-1] != os.sep:
-        args.source += os.sep
-    if args.destination[-1] != os.sep:
-        args.destination += os.sep
-
-    # Check to see if there is actually a public key file
-    if not os.path.isfile(args.public_key):
-        print ("Public key not found: " + args.public_key)
-        sys.exit(1)
-
-    # Generate a random secret that will encrypt the files as AES-256
-    aes_secret = os.urandom(32)
-
-    # Recursively encrypt all files and filenames in source folder
-    filenames_map = dict()  # Will contain the real - obscured paths combos
-    for dirpath, dirnames, filenames in os.walk(args.source):
-        for name in filenames:
-            filename = os.path.join(dirpath, name)
-            # Save the real filepath
-            real_filepath = filename.replace(args.source, "")
-            # Generate a salted file path
-            salted_path = (str(os.urandom(16)) + real_filepath).encode("UTF-8")
-            # Create a unique obscured filepath by hashing the salted filpath
-            unique_name = hashlib.sha512(salted_path).hexdigest()
-            # Save it to the filenames map along with the original filepath
-            filenames_map[unique_name] = real_filepath
-            # Encrypt the clear text file and give it an obscured name
-            encrypt_file(aes_secret, filename, args.destination + unique_name)
-            # If we are encrypting in the same folder as the clear text files
-            # then remove the original unencrypted files
-            if args.source == args.destination:
-                if os.path.exists(filename):
-                    os.remove(filename)
-
-    # If the source folder is the same as the destination, we should have some
-    # leftover empty subdirectories. Let's remove those too.
-    if args.source == args.destination:
-        for content in os.listdir(args.source):
-            content_path = os.path.join(args.source, content)
-            if os.path.isdir(content_path):
-                shutil.rmtree(content_path)
-
-    # Save and encrypt the mapping between real and obscured filepaths
-    json_map_name = "filenames_map"
-    with tempfile.NamedTemporaryFile(mode="r+t") as tmp_json:
-        tmp_json.write(json.dumps(filenames_map))
-        tmp_json.seek(0)  # Set the position to the beginning so we can read
-        # Encrypt the cleartext json file
-        encrypt_file(aes_secret, tmp_json.name, args.destination + json_map_name)
-
-    # Encrypt and save our AES secret using the public key for the holder of
-    # the private key to be able to decrypt the files.
-    with open(args.destination + "secret", "wb") as key_file:
-        key_file.write(encrypt_string(aes_secret, args.public_key))
+    run(args.source, args.destination, args.public_key)
 
 
 if __name__ == "__main__":
