@@ -3,3 +3,4 @@ clear/
 encrypted/
 decrypted/
 key.*
+__pycache__/
