@@ -21,15 +21,17 @@ def main():
                         help="Path to the public key", required=True)
     args = parser.parse_args()
 
+    # The mountpoint for new drives
     mountpoint = os.path.join("/media", getpass.getuser())  # Linux only
 
+    # Setup pyInotify
     wm = pyinotify.WatchManager()  # Watch Manager
     mask = pyinotify.IN_CREATE  # watched events
 
     notifier = pyinotify.Notifier(wm, EventHandler(args.public_key))
     wdd = wm.add_watch(mountpoint, mask)
 
-    notifier.loop()
+    notifier.loop()  # Blocking loop
 
 if __name__ == "__main__":
     main()
