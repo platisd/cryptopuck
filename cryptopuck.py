@@ -1,4 +1,4 @@
-import os, getpass, pyinotify, time, argparse, enum, threading
+import os, getpass, pyinotify, time, argparse, enum, threading, subprocess
 import encrypt
 
 class EventHandler(pyinotify.ProcessEvent):
@@ -13,10 +13,16 @@ class EventHandler(pyinotify.ProcessEvent):
             time.sleep(1)
             self.led_manager.set_state(CryptopuckState.ENCRYPTING)
             try:
+                # Encrypt the volume
                 encrypt.run(event.pathname, event.pathname, self.public_key)
+                # Unmount the volume
+                print("Unmounting " + event.pathname)
+                run_system_cmd("umount " + event.pathname)
+                # Change the LED state
                 self.led_manager.set_state(CryptopuckState.IDLE)
                 print("Finished volume encryption: " + event.pathname)
-            except:
+            except Exception as e:
+                print(e)
                 self.led_manager.set_state(CryptopuckState.ERROR)
 
 class CryptopuckState(enum.Enum):
@@ -83,6 +89,26 @@ class LedManager():
                 time.sleep(0.1)
                 self.led.turn_off()
                 time.sleep(0.3)
+
+
+def run_system_cmd(cmd):
+    """ Run system command using the shell.
+
+    Arguments:
+        cmd         The shell command to be run
+
+    Return:
+        0           Command was executed succefully
+        1           Command failed during execution
+    """
+    try:
+        subprocess.check_output(cmd, stderr=subprocess.STDOUT,
+                                shell=True, universal_newlines=True)
+    except subprocess.CalledProcessError as e:
+        print("ERROR:\n\n%s" % e.output)
+        return 1
+
+    return 0
 
 
 def main():
