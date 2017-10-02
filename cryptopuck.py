@@ -1,5 +1,8 @@
 import os, sys, getpass, pyinotify, time, argparse, enum, threading, subprocess
 import encrypt
+if getpass.getuser() == "pi":
+            import RPi.GPIO as GPIO
+
 
 class EventHandler(pyinotify.ProcessEvent):
     def __init__(self, public_key, led_manager):
@@ -40,16 +43,15 @@ class RpiLed():
             pin         The RPi pin with BOARD numbering
         """
         self.led_pin = pin
-        import RPi.GPIO as GPIO
         GPIO.setmode(GPIO.BOARD)
-        GPIO.setup(led_pin, GPIO.OUT)
-        GPIO.output(led_pin, GPIO.LOW)
+        GPIO.setup(self.led_pin, GPIO.OUT)
+        GPIO.output(self.led_pin, GPIO.LOW)
 
     def turn_on(self):
-        GPIO.output(led_pin, GPIO.HIGH)
+        GPIO.output(self.led_pin, GPIO.HIGH)
 
     def turn_off(self):
-        GPIO.output(led_pin, GPIO.LOW)
+        GPIO.output(self.led_pin, GPIO.LOW)
 
 
 class LedManager():
