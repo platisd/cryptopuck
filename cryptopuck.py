@@ -1,4 +1,4 @@
-import os, getpass, pyinotify, time, argparse, enum, threading, subprocess
+import os, sys, getpass, pyinotify, time, argparse, enum, threading, subprocess
 import encrypt
 
 class EventHandler(pyinotify.ProcessEvent):
@@ -7,7 +7,7 @@ class EventHandler(pyinotify.ProcessEvent):
         self.led_manager = led_manager
 
     def process_IN_CREATE(self, event):
-        if (os.path.isdir(event.pathname)):
+        if os.path.isdir(event.pathname):
             print ("New mounted volume detected: " + event.pathname)
             # Wait for the volume to be mounted and avoid permission errors
             time.sleep(1)
@@ -114,12 +114,16 @@ def run_system_cmd(cmd):
 def main():
     parser_description = "Cryptopuck: Encrypt your drives on the fly"
     parser = argparse.ArgumentParser(description=parser_description)
+    parser.add_argument("--mountpoint",
+                        help="Path to where new volumes are mounted",
+                        required=True)
     parser.add_argument("--public-key",
                         help="Path to the public key", required=True)
     args = parser.parse_args()
 
-    # The mountpoint for new drives
-    mountpoint = os.path.join("/media", getpass.getuser())  # Linux only
+    if not os.path.isdir(args.mountpoint):
+        print("Mountpoint does not exist or not a directory:", args.mountpoint)
+        sys.exit(1)
 
     # Setup the Led Manager
     main_thread = threading.current_thread()
@@ -132,7 +136,7 @@ def main():
     mask = pyinotify.IN_CREATE  # watched events
 
     notifier = pyinotify.Notifier(wm, EventHandler(args.public_key, led_manager))
-    wdd = wm.add_watch(mountpoint, mask)
+    wdd = wm.add_watch(args.mountpoint, mask)
 
     notifier.loop()  # Blocking loop
     led_thread.join()
