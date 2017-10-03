@@ -19,6 +19,8 @@ class EventHandler(pyinotify.ProcessEvent):
                 # Encrypt the volume
                 encrypt.run(event.pathname, event.pathname, self.public_key)
                 # Unmount the volume
+                print("Syncing")
+                run_system_cmd("sync")
                 print("Unmounting " + event.pathname)
                 run_system_cmd("umount " + event.pathname)
                 # Change the LED state
@@ -130,7 +132,7 @@ def main():
     # Setup the Led Manager
     main_thread = threading.current_thread()
     led_manager = LedManager(main_thread)
-    led_thread = threading.Thread(target=led_manager.run())
+    led_thread = threading.Thread(target=led_manager.run)
     led_thread.start()
 
     # Setup pyInotify
