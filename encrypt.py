@@ -86,11 +86,21 @@ def run(source, destination, public_key="./key.public"):
     # Generate a random secret that will encrypt the files as AES-256
     aes_secret = os.urandom(32)
 
+    # Encrypt and save our AES secret using the public key for the holder of
+    # the private key to be able to decrypt the files.
+    secret_path = destination + "secret"
+    with open(secret_path, "wb") as key_file:
+        key_file.write(encrypt_string(aes_secret, public_key))
+
     # Recursively encrypt all files and filenames in source folder
     filenames_map = dict()  # Will contain the real - obscured paths combos
     for dirpath, dirnames, filenames in os.walk(source):
         for name in filenames:
             filename = os.path.join(dirpath, name)
+            # In case source is the same as destination, the encrypted secret
+            # will be one of the detected files and should not be re-encrypted
+            if filename == secret_path:
+                continue
             # Save the real filepath
             real_filepath = filename.replace(source, "")
             # Generate a salted file path
@@ -123,11 +133,6 @@ def run(source, destination, public_key="./key.public"):
         tmp_json.seek(0)  # Set the position to the beginning so we can read
         # Encrypt the cleartext json file
         encrypt_file(aes_secret, tmp_json.name, destination + json_map_name)
-
-    # Encrypt and save our AES secret using the public key for the holder of
-    # the private key to be able to decrypt the files.
-    with open(destination + "secret", "wb") as key_file:
-        key_file.write(encrypt_string(aes_secret, public_key))
 
 
 def main():
