@@ -92,17 +92,19 @@ def run(source, destination, secret, private_key="./key.private"):
     # To do that we need to restore the mapping that contains the
     # real to obscured paths combinations. The keys are the obscured filenames
     # and the values are the real paths.
-    json_map_name = "filenames_map"
-    json_encrypted_map = source + json_map_name
+    json_encrypted_map = source + "filenames_map"
+    # Dictionary to hold the mapping between encrypted and real paths
+    filenames_map = dict()
     if not os.path.isfile(json_encrypted_map):
-        print("Unable to restore structure. Map file not found: " +
-              json_encrypted_map)
-        sys.exit(1)
-    # Unencrypt the json containing the filenames map into a temporary file
-    with tempfile.NamedTemporaryFile(mode="r+t") as tmp_json:
-        decrypt_file(decrypted_aes_secret, json_encrypted_map, tmp_json.name)
-        tmp_json.seek(0)  # Go to the beginning of the file to read again
-        filenames_map = json.load(tmp_json)
+        print("Warning: Will not restore file structure.")
+        warning_msg = "Map between encrypted filenames and paths not found: "
+        print(warning_msg + json_encrypted_map)
+    else:
+        # Unencrypt the json containing the filenames map into a temporary file
+        with tempfile.NamedTemporaryFile(mode="r+t") as tmp_json:
+            decrypt_file(decrypted_aes_secret, json_encrypted_map, tmp_json.name)
+            tmp_json.seek(0)  # Go to the beginning of the file to read again
+            filenames_map = json.load(tmp_json)
 
     # Recursively unencrypt files in the source folder
     for dirpath, dirnames, filenames in os.walk(source):
@@ -112,12 +114,16 @@ def run(source, destination, secret, private_key="./key.private"):
             if filename != secret and filename != json_encrypted_map:
                 # If the filenames mapping is defined, then we should use it
                 # to restore the original file structure
-                destination_file = destination + name
-                # Get the real filename and its path
-                destination_file = destination + filenames_map[name]
-                # Create the necessary folder structure
-                folder_structure = os.path.dirname(destination_file)
-                os.makedirs(folder_structure, exist_ok=True)
+                if filenames_map:
+                    # Get the real filename and its path
+                    destination_file = destination + filenames_map[name]
+                    # Create the necessary folder structure
+                    folder_structure = os.path.dirname(destination_file)
+                    os.makedirs(folder_structure, exist_ok=True)
+                else:
+                    # If for some reason the filenames map is not defined then
+                    # suffix the files to indicate that they are decrypted
+                    destination_file = destination + name + ".clear"
                 print("Decrypting: " + filename)
                 decrypt_file(decrypted_aes_secret, filename, destination_file)
             # If we are decrypting in the same folder as the encrypted files
