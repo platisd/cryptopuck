@@ -62,7 +62,7 @@ class LedManager():
         # Monitor the main thread to stop if it has stopped
         self.main_thread = main_thread
         # Set the type of LED to use
-        self.led = RpiLed(33) if getpass.getuser() == "pi" else None
+        self.led = RpiLed(40) if getpass.getuser() == "pi" else None
         # Set the initial operational state
         self.state = CryptopuckState.IDLE
 
@@ -85,9 +85,9 @@ class LedManager():
                 self.led.turn_on()
             elif self.state == CryptopuckState.ENCRYPTING:
                 self.led.turn_on()
-                time.sleep(0.2)
+                time.sleep(0.1)
                 self.led.turn_off()
-                time.sleep(0.7)
+                time.sleep(1)
             elif self.state == CryptopuckState.ERROR:
                 self.led.turn_on()
                 time.sleep(0.1)
