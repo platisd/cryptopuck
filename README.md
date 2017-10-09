@@ -60,6 +60,7 @@ su pi -c '/bin/mkdir -p /media/pi'
 # Run Cryptopuck and save logs
 su pi -c '/usr/bin/python3 /home/pi/cryptopuck/cryptopuck.py --mountpoint=/media/pi/ --public-key=/home/pi/cryptopuck/key.public >> /home/pi/cryptopuck.log 2>&1 &'
 ```
+  * Transfer this repository to RPi's `/home/pi` folder. You can either use `git` or copy the files directly to the microSD card.
   * Generate the public and private key pair:
     * `python3 generate_keys.py`
   * Move the private key (`key.private`) off the Cryptopuck. **You should never use Cryptopuck with the private key stored on the Raspberry Pi as if the perpetrator discovers it, they will be able to decrypt your files.**
