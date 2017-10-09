@@ -1,7 +1,15 @@
-import sys, os, struct, argparse, hashlib, json, tempfile, shutil
+import sys
+import os
+import struct
+import argparse
+import hashlib
+import json
+import tempfile
+import shutil
 from Crypto.Cipher import AES
 from Crypto.PublicKey import RSA
 from Crypto.Cipher import PKCS1_OAEP
+
 
 def encrypt_file(key, in_filename, out_filename=None, chunksize=64*1024):
     """ Encrypts a file using AES (CBC mode) with the
@@ -45,6 +53,7 @@ def encrypt_file(key, in_filename, out_filename=None, chunksize=64*1024):
 
                 outfile.write(encryptor.encrypt(chunk))
 
+
 def encrypt_string(text_to_encrypt, public_key_file):
     """ Encrypt the supplied string using our public key.
 
@@ -80,7 +89,7 @@ def run(source, destination, public_key="./key.public"):
 
     # Check to see if there is actually a public key file
     if not os.path.isfile(public_key):
-        print ("Public key not found: " + public_key)
+        print("Public key not found: " + public_key)
         sys.exit(1)
 
     # Generate a random secret that will encrypt the files as AES-256

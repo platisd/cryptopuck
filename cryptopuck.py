@@ -1,7 +1,15 @@
-import os, sys, getpass, pyinotify, time, argparse, enum, threading, subprocess
+import os
+import sys
+import getpass
+import pyinotify
+import time
+import argparse
+import enum
+import threading
+import subprocess
 import encrypt
 if getpass.getuser() == "pi":
-            import RPi.GPIO as GPIO
+    import RPi.GPIO as GPIO
 
 
 class EventHandler(pyinotify.ProcessEvent):
@@ -11,7 +19,7 @@ class EventHandler(pyinotify.ProcessEvent):
 
     def process_IN_CREATE(self, event):
         if os.path.isdir(event.pathname):
-            print ("New mounted volume detected: " + event.pathname)
+            print("New mounted volume detected: " + event.pathname)
             # Wait for the volume to be mounted and avoid permission errors
             time.sleep(1)
             self.led_manager.set_state(CryptopuckState.ENCRYPTING)
@@ -29,6 +37,7 @@ class EventHandler(pyinotify.ProcessEvent):
             except Exception as e:
                 print(e)
                 self.led_manager.set_state(CryptopuckState.ERROR)
+
 
 class CryptopuckState(enum.Enum):
     """ Cryptopuck's operational states """
@@ -139,7 +148,8 @@ def main():
     wm = pyinotify.WatchManager()  # Watch Manager
     mask = pyinotify.IN_CREATE  # watched events
 
-    notifier = pyinotify.Notifier(wm, EventHandler(args.public_key, led_manager))
+    notifier = pyinotify.Notifier(wm, EventHandler(args.public_key,
+                                  led_manager))
     wdd = wm.add_watch(args.mountpoint, mask)
 
     notifier.loop()  # Blocking loop

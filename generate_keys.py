@@ -5,7 +5,8 @@ The public key should be deployed on the Cryptopuck and will be used to encrypt
 the AES secret which will have encrypted the files.
 """
 
-import os,argparse
+import os
+import argparse
 from Crypto.PublicKey import RSA
 
 

@@ -1,4 +1,9 @@
-import sys, os, struct, argparse, json, tempfile
+import sys
+import os
+import struct
+import argparse
+import json
+import tempfile
 from Crypto.Cipher import AES
 from Crypto.PublicKey import RSA
 from Crypto.Cipher import PKCS1_OAEP
@@ -76,11 +81,11 @@ def run(source, destination, secret, private_key="./key.private"):
         secret = source + "secret"
     # Check to see if there is actually an AES secret file
     if not os.path.isfile(secret):
-        print ("Secret not found: " + secret)
+        print("Secret not found: " + secret)
         sys.exit(1)
     # Check to see if there is actually a private key file
     if not os.path.isfile(private_key):
-        print ("Private key not found: " + private_key)
+        print("Private key not found: " + private_key)
         sys.exit(1)
     # Get the decrypted AES key
     with open(secret, "rb") as aes_secret_file:
@@ -102,7 +107,8 @@ def run(source, destination, secret, private_key="./key.private"):
     else:
         # Unencrypt the json containing the filenames map into a temporary file
         with tempfile.NamedTemporaryFile(mode="r+t") as tmp_json:
-            decrypt_file(decrypted_aes_secret, json_encrypted_map, tmp_json.name)
+            decrypt_file(decrypted_aes_secret, json_encrypted_map,
+                         tmp_json.name)
             tmp_json.seek(0)  # Go to the beginning of the file to read again
             filenames_map = json.load(tmp_json)
 
@@ -131,6 +137,7 @@ def run(source, destination, secret, private_key="./key.private"):
             if source == destination:
                 if os.path.exists(filename):
                     os.remove(filename)
+
 
 def main():
     parser_description = "Decrypt a directory containing encrypted files"
