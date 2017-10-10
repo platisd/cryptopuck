@@ -64,6 +64,7 @@ su pi -c '/usr/bin/python3 /home/pi/cryptopuck/cryptopuck.py --mountpoint=/media
   * Generate the public and private key pair:
     * `python3 generate_keys.py`
   * Move the private key (`key.private`) off the Cryptopuck. **You should never use Cryptopuck with the private key stored on the Raspberry Pi as if the perpetrator discovers it, they will be able to decrypt your files.**
+  * If you wish to never have stored the private key on the Cryptopuck, do the above process on your own computer and transfer **the public key** to the Cryptopuck.
   * That was about it! After you have encrypted the drive, you can plug it into your computer where the private key is stored to decrypt your files. To achieve that, you should install the Python 3 and PyCrypto on your computer and use the `decrypt.py` script:
     * `python3 decrypt.py --source=/path/to/your/drive/ --destination=/path/to/your/drive/ --private-key=/path/to/your/key.private`
 
