@@ -2,7 +2,8 @@
 Script to generate a private and public RSA key.
 
 The public key should be deployed on the Cryptopuck and will be used to encrypt
-the AES secret which will have encrypted the files.
+the AES secret which will have encrypted the files. Will work on both Windows
+and Linux.
 """
 
 import os

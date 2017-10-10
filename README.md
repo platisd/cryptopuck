@@ -77,3 +77,6 @@ su pi -c '/usr/bin/python3 /home/pi/cryptopuck/cryptopuck.py --mountpoint=/media
   * On/Off switch
   * 5mm LED
   * 220Ω resistor
+
+## Media
+  * Watch a demo and read the story behind Cryptopuck at [platis.solutions](https://platis.solutions/blog/2017/10/10/cryptopuck-encrypt-removable-media-on-the-fly/)

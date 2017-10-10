@@ -1,3 +1,12 @@
+"""
+Script that detects mounted volumes and encrypts them.
+
+The script contains the main business logic of Cryptopuck. Using inotify it
+watches the given mountpoint for new volumes and when they are mounted it calls
+the `encrypt` module to encrypt it. Additionally, it handles the LED blinking
+that indicates the operational state of the Cryptopuck. Will work on Linux.
+"""
+
 import os
 import sys
 import getpass

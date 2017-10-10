@@ -1,3 +1,12 @@
+"""
+Script to decrypt the files.
+
+Decrypts the given source folder and outputs the decrypted files in the given
+destination folder. If the source and destination folders are the same then the
+initial encrypted files are removed after they are encrypted. Will work on
+both Windows and Linux.
+"""
+
 import sys
 import os
 import struct
