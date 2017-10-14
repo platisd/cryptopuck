@@ -80,3 +80,17 @@ su pi -c '/usr/bin/python3 /home/pi/cryptopuck/cryptopuck.py --mountpoint=/media
 
 ## Media
   * Watch a demo and read the story behind Cryptopuck at [platis.solutions](https://platis.solutions/blog/2017/10/10/cryptopuck-encrypt-removable-media-on-the-fly/)
+
+## FAQ
+  * **Q:** Why don't you encrypt the whole volume which would be safer and would not expose any metadata like the file sizes?
+    * **A:** There are two main reasons behind this design choice. To begin with, encrypting the whole drive would be slow and so are USB 2.0 connection as well as the Raspberry Pi Zero. Encrypting the whole drive with the current hardware setup would dramatically increase the time needed to encrypt the drive. Moreover, the encrypted volume (e.g. LUKS) would not be read without additional software on other platforms such as Windows. Cryptopuck should be simple and fast to use.
+  * **Q:** Why don't you ZIP the files before encrypting them so to protect some of their metadata?
+    * **A:** Same answer as above. The current hardware setup is too slow to perform this operation in a satisfactory manner time-wise.
+  * **Q:** Are you aware that just removing the clear-text files is not enough as recoverable traces could remain?
+    * **A:** Yes, that is absolutely accurate but this is an acceptable trade-off at the moment. Overwriting the non-used space with random data will, on one hand, dramatically slow the whole procedure down. On the other, it does not completely guarantee everything will be overwritten due to the wear-leveling features of modern USB devices.
+  * **Q:** Why do you encrypt the files with AES and then the AES key with RSA instead of RSA directly?
+    * **A:** Encrypting arbitrarily large files with RSA is not the commonly suggested approach as it would be too slow. Encrypting symmetrically and then encrypting the symmetric key with a public key, provides similar levels of security at higher efficiency. This, of course, assuming the symmetric key is sufficiently random.
+  * **Q:** What happens if someone confiscates my Cryptopuck? Are my files still secure?
+    * **A:** Yes, your files should still be as secure as they were, provided you never stored your private key inside the Cryptopuck. However, the Cryptopuck could have been compromised! **Do not use it again without ensuring its software and hardware integrity first.**
+  * **Q:** Should I depend my `[life/freedom/industrial secrets/X]` on this?
+    * **A:** If you value them, **do not**. This is a proof-of-concept system, using cheap and general-purpose materials, that has not been audited.
