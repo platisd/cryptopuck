@@ -47,6 +47,12 @@ To set things up, you will need to get your RPi Zero connected to the Internet a
     * `sudo nano /usr/share/polkit-1/actions/org.freedesktop.udisks2.policy`
     * Change all `<allow_any>auth_admin</allow_any><allow_inactive>auth_admin</allow_inactive>` to:
     * `<allow_any>yes</allow_any><allow_inactive>yes</allow_inactive>`
+  * Use RPi's hardware random number generator to generate entropy.
+    * Install `rng-tools`:
+      * sudo apt-get install rng-tools
+    * Enable the use of `/dev/hwrng` by editing `/etc/default/rng-tools`:
+      * sudo nano /etc/default/rng-tools
+      * Add `HRNGDEVICE=/dev/hwrng` to the file (or uncomment the existing entry)
   * Launch the script on start-up as non-root user by adding it before `exit 0` in `/etc/rc.local`:
     * `sudo nano /etc/rc.local`
     * Add the following lines:
