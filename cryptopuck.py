@@ -31,21 +31,26 @@ class EventHandler(pyinotify.ProcessEvent):
             print("New mounted volume detected: " + event.pathname)
             # Wait for the volume to be mounted and avoid permission errors
             time.sleep(1)
+            # Encrypt the volume
             self.led_manager.set_state(CryptopuckState.ENCRYPTING)
             try:
-                # Encrypt the volume
                 encrypt.run(event.pathname, event.pathname, self.public_key)
-                # Unmount the volume
-                print("Syncing")
-                run_system_cmd("sync")
-                print("Unmounting " + event.pathname)
-                run_system_cmd("umount " + event.pathname)
-                # Change the LED state
-                self.led_manager.set_state(CryptopuckState.IDLE)
                 print("Finished volume encryption: " + event.pathname)
             except Exception as e:
                 print(e)
                 self.led_manager.set_state(CryptopuckState.ERROR)
+            # Unmount the volume
+            try:
+                print("Syncing")
+                run_system_cmd("sync")
+                print("Unmounting " + event.pathname)
+                run_system_cmd("umount " + event.pathname)
+            except Exception as e:
+                print(e)
+                self.led_manager.set_state(CryptopuckState.ERROR)
+            # If everything went well, indicate success through the LED state
+            if self.led_manager.get_state() == CryptopuckState.ENCRYPTING:
+                self.led_manager.set_state(CryptopuckState.IDLE)
 
 
 class CryptopuckState(enum.Enum):
@@ -87,6 +92,10 @@ class LedManager():
     def set_state(self, state):
         """ Set the operational state using CryptopuckState. """
         self.state = state
+
+    def get_state(self):
+        """ Get the currently set CryptopuckState. """
+        return self.state
 
     def run(self):
         """ The main business logic of the LED Manager.
